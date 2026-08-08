@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns="urn:activemq"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:activemq">
+
+  <core xmlns="urn:activemq:core"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:activemq:core">
+
+    <name>broker</name>
+
+    <persistence-enabled>false</persistence-enabled>
+    <security-enabled>false</security-enabled>
+
+    <acceptors>
+      <acceptor name="core">tcp://0.0.0.0:61616?protocols=CORE</acceptor>
+      <acceptor name="amqp">tcp://0.0.0.0:5672?protocols=AMQP</acceptor>
+    </acceptors>
+
+    <addresses>
+      <address name="APP.FORWARD">
+        <anycast>
+          <queue name="APP.FORWARD"/>
+        </anycast>
+      </address>
+    </addresses>
+
+    <broker-plugins>
+      <broker-plugin class-name="com.joshdreagan.artemis.plugins.WildcardDivertPlugin">
+        <property key="divert-prefix" value="divert-others-"/>
+        <property key="address-includes" value="APP.#"/>
+        <property key="address-excludes" value="APP.ALL, APP.US.ALL, APP.US.EAST.ALL, APP.US.EAST.NY, APP.US.EAST.NY.#"/>
+        <property key="forwarding-address" value="APP.FORWARD"/>
+        <property key="routing-type" value="ANYCAST"/>
+        <property key="exclusive" value="true"/>
+      </broker-plugin>
+      <broker-plugin class-name="com.joshdreagan.artemis.plugins.WildcardDivertPlugin">
+        <property key="divert-prefix" value="divert-specific-"/>
+        <property key="address-includes" value="APP.US.EAST.NY.INTERNAL_AND_HUB"/>
+        <property key="forwarding-address" value="APP.FORWARD"/>
+        <property key="routing-type" value="ANYCAST"/>
+        <property key="exclusive" value="false"/>
+      </broker-plugin>
+      <broker-plugin class-name="com.joshdreagan.artemis.plugins.WildcardDivertPlugin">
+        <property key="divert-prefix" value="divert-test-filter-"/>
+        <property key="address-includes" value="TEST.FILTER"/>
+        <property key="forwarding-address" value="TEST.FILTER.FORWARD"/>
+        <property key="routing-type" value="ANYCAST"/>
+        <property key="exclusive" value="true"/>
+        <property key="filter-string" value="test_header='some_value'"/>
+      </broker-plugin>
+      <broker-plugin class-name="com.joshdreagan.artemis.plugins.WildcardDivertPlugin">
+        <property key="divert-prefix" value="divert-test-transformer-"/>
+        <property key="address-includes" value="TEST.TRANSFORMER"/>
+        <property key="forwarding-address" value="TEST.TRANSFORMER.FORWARD"/>
+        <property key="routing-type" value="ANYCAST"/>
+        <property key="exclusive" value="true"/>
+        <property key="transformer-class-name" value="com.joshdreagan.artemis.plugins.test.transformers.HeaderTransformer"/>
+        <property key="transformer-property.header-name" value="test_header"/>
+        <property key="transformer-property.header-value" value="some_value"/>
+      </broker-plugin>
+    </broker-plugins>
+
+  </core>
+
+</configuration>
