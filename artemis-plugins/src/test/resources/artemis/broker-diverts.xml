@@ -29,7 +29,8 @@
       <broker-plugin class-name="com.joshdreagan.artemis.plugins.WildcardDivertPlugin">
         <property key="divert-prefix" value="divert-others-"/>
         <property key="address-includes" value="APP.#"/>
-        <property key="address-excludes" value="APP.ALL, APP.US.ALL, APP.US.EAST.ALL, APP.US.EAST.NY, APP.US.EAST.NY.#"/>
+        <property key="address-excludes"
+                  value="APP.ALL, APP.US.ALL, APP.US.EAST.ALL, APP.US.EAST.NY, APP.US.EAST.NY.#"/>
         <property key="forwarding-address" value="APP.FORWARD"/>
         <property key="routing-type" value="ANYCAST"/>
         <property key="exclusive" value="true"/>
@@ -55,7 +56,8 @@
         <property key="forwarding-address" value="TEST.TRANSFORMER.FORWARD"/>
         <property key="routing-type" value="ANYCAST"/>
         <property key="exclusive" value="true"/>
-        <property key="transformer-class-name" value="com.joshdreagan.artemis.plugins.test.transformers.HeaderTransformer"/>
+        <property key="transformer-class-name"
+                  value="com.joshdreagan.artemis.plugins.test.transformers.HeaderTransformer"/>
         <property key="transformer-property.header-name" value="test_header"/>
         <property key="transformer-property.header-value" value="some_value"/>
       </broker-plugin>
