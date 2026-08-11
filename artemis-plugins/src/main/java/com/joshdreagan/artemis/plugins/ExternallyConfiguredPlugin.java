@@ -91,8 +91,8 @@ public class ExternallyConfiguredPlugin implements ActiveMQServerPlugin {
   protected static Map<String, Object> parseConfigurationFile(URL location) throws IOException {
     String type = Helper.getConfigType(location);
     ObjectMapper mapper = switch (type.toLowerCase()) {
-      case "application/json" -> new ObjectMapper();
-      case "application/yaml" -> new ObjectMapper(
+      case "json" -> new ObjectMapper();
+      case "yaml" -> new ObjectMapper(
         YAMLFactory
           .builder()
           .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)

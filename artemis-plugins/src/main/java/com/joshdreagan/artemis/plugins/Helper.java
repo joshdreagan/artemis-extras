@@ -37,14 +37,14 @@ public final class Helper {
     return "\\Q" + string + "\\E";
   }
 
-  public static String toRfcType(String typeString) {
+  public static String toSimpleTypeString(String typeString) {
     Objects.requireNonNull(typeString, "Parameter 'typeString' cannot be null");
 
-    return switch (typeString) {
+    return switch (typeString.toLowerCase()) {
       case "xml",
-           "application/xml" -> "application/xml";
+           "application/xml" -> "xml";
       case "json",
-           "application/json" -> "application/json";
+           "application/json" -> "json";
       case "yaml",
            "yml",
            "application/yaml",
@@ -54,18 +54,18 @@ public final class Helper {
            "text/yaml",
            "text/yml",
            "text/x-yaml",
-           "text/x-yml" -> "application/yaml";
+           "text/x-yml" -> "yaml";
       case "text",
            "txt",
-           "text/plain" -> "text/plain";
-      default -> typeString;
+           "text/plain" -> "text";
+      default -> throw new IllegalArgumentException("Unknown type: " + typeString);
     };
   }
 
   public static String getConfigType(URL url) throws IOException {
     String type = getQueryParameter(url, "type", String.class);
     if (type != null) {
-      return type.toLowerCase();
+      return toSimpleTypeString(type);
     }
 
     String prefix = url.getProtocol();
@@ -73,7 +73,7 @@ public final class Helper {
       String urlPath = url.getPath();
       String rfcType = Files.probeContentType(Paths.get(urlPath));
       if (rfcType != null) {
-        return toRfcType(rfcType);
+        return toSimpleTypeString(rfcType);
       }
     }
 
@@ -81,7 +81,7 @@ public final class Helper {
     if (urlPath != null) {
       if (urlPath.contains(".")) {
         String extension = urlPath.substring(urlPath.lastIndexOf(".") + 1);
-        return extension.toLowerCase();
+        return toSimpleTypeString(extension);
       }
     }
 
