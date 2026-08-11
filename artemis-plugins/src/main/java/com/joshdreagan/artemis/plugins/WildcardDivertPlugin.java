@@ -64,12 +64,12 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
 
     addressIncludes = new HashSet<>();
     String rawAddressIncludes = Objects.requireNonNull(usedProperties.remove(ADDRESS_INCLUDES), String.format("%s property is required", ADDRESS_INCLUDES));
-    addressIncludes.addAll(Set.of(rawAddressIncludes.split("\\s*[,\\|]\\s*")));
+    addressIncludes.addAll(Set.of(rawAddressIncludes.split("\\s*[,|]\\s*")));
 
     addressExcludes = new HashSet<>();
     String rawAddressExcludes = usedProperties.remove(ADDRESS_EXCLUDES);
     if (rawAddressExcludes != null) {
-      addressExcludes.addAll(Set.of(rawAddressExcludes.split("\\s*[,\\|]\\s*")));
+      addressExcludes.addAll(Set.of(rawAddressExcludes.split("\\s*[,|]\\s*")));
     }
 
     forwardingAddress = Objects.requireNonNull(usedProperties.remove(FORWARDING_ADDRESS), String.format("%s property is required", FORWARDING_ADDRESS));
@@ -92,20 +92,17 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
     }
 
     String chainedTransformerClass = ChainedTransformer.class.getName();
-    Map<String, String> chainedTransformerProperties = new HashMap<>();
     List<String> chainedTransformerNames = new ArrayList<>();
 
     String divertHeadersTransformerName = "divert-headers-transformer";
     String divertHeadersTransformerClassName = DivertHeadersTransformer.class.getName();
-    chainedTransformerProperties.putAll(
-      ChainedTransformer.combine(
-        divertHeadersTransformerName,
-        new DelegateTransformerConfig(
-          divertHeadersTransformerClassName,
-          null
-        )
+    Map<String, String> chainedTransformerProperties = new HashMap<>(ChainedTransformer.combine(
+      divertHeadersTransformerName,
+      new DelegateTransformerConfig(
+        divertHeadersTransformerClassName,
+        null
       )
-    );
+    ));
     chainedTransformerNames.add(divertHeadersTransformerName);
 
     String delegateTransformerName = "delegate-transformer";
@@ -142,7 +139,7 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
     }
 
     initialized = true;
-    log.debug("Initialized plugin: {}", toString());
+    log.debug("Initialized plugin: {}", this);
   }
 
   @Override
@@ -164,7 +161,7 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
       excludeRegexes.add(Pattern.compile(Helper.wildcardToRegex(addressExclude, wildcardConfiguration)));
     }
 
-    log.debug("Plugin registered: {}", toString());
+    log.debug("Plugin registered: {}", this);
   }
 
   @Override
@@ -178,7 +175,7 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
     excludeRegexes.clear();
     excludeRegexes = null;
 
-    log.debug("Plugin unregistered: {}", toString());
+    log.debug("Plugin unregistered: {}", this);
   }
 
   @Override

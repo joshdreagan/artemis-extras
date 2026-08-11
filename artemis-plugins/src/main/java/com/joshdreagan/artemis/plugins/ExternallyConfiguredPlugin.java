@@ -84,7 +84,7 @@ public class ExternallyConfiguredPlugin implements ActiveMQServerPlugin {
     }
 
     initialized = true;
-    log.debug("Initialized plugin: {}", toString());
+    log.debug("Initialized plugin: {}", this);
   }
 
   @SuppressWarnings("unchecked")
