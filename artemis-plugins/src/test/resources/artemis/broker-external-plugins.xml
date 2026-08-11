@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns="urn:activemq"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="urn:activemq">
+
+  <core xmlns="urn:activemq:core"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:activemq:core">
+
+    <name>broker</name>
+
+    <persistence-enabled>false</persistence-enabled>
+    <security-enabled>false</security-enabled>
+
+    <!--
+    <broker-plugins>
+      <broker-plugin class-name="com.joshdreagan.artemis.plugins.ExternallyConfiguredPlugin">
+        <property key="location" value="target/test-classes/artemis/plugins.json"/>
+      </broker-plugin>
+      <broker-plugin class-name="com.joshdreagan.artemis.plugins.ExternallyConfiguredPlugin">
+        <property key="location" value="target/test-classes/artemis/plugins.yaml"/>
+      </broker-plugin>
+    </broker-plugins>
+    -->
+
+  </core>
+
+</configuration>

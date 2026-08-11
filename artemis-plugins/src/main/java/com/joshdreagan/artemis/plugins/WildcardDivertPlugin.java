@@ -11,11 +11,16 @@ import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.ComponentConfigurationRoutingType;
 import org.apache.activemq.artemis.core.server.impl.AddressInfo;
 import org.apache.activemq.artemis.core.server.plugin.ActiveMQServerPlugin;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class WildcardDivertPlugin implements ActiveMQServerPlugin {
+
+  private static final Logger log = LoggerFactory.getLogger(WildcardDivertPlugin.class);
 
   public static final String DIVERT_PREFIX = "divert-prefix";
   public static final String ADDRESS_INCLUDES = "address-includes";
@@ -43,20 +48,28 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
   private List<Pattern> includeRegexes;
   private List<Pattern> excludeRegexes;
 
+  private boolean initialized = false;
+
   @Override
   public void init(Map<String, String> properties) {
+    if (properties == null || properties.isEmpty()) {
+      throw new IllegalArgumentException("Plugin properties cannot be null or empty");
+    }
+
+    log.debug("Initializing plugin [{}] with properties: {}", this.getClass().getSimpleName(), properties);
+
     Map<String, String> usedProperties = new HashMap<>(properties);
 
     divertPrefix = Objects.requireNonNull(usedProperties.remove(DIVERT_PREFIX), String.format("%s property is required", DIVERT_PREFIX));
 
     addressIncludes = new HashSet<>();
     String rawAddressIncludes = Objects.requireNonNull(usedProperties.remove(ADDRESS_INCLUDES), String.format("%s property is required", ADDRESS_INCLUDES));
-    addressIncludes.addAll(Set.of(rawAddressIncludes.split("\\s*,\\s*")));
+    addressIncludes.addAll(Set.of(rawAddressIncludes.split("\\s*[,\\|]\\s*")));
 
     addressExcludes = new HashSet<>();
     String rawAddressExcludes = usedProperties.remove(ADDRESS_EXCLUDES);
     if (rawAddressExcludes != null) {
-      addressExcludes.addAll(Set.of(rawAddressExcludes.split("\\s*,\\s*")));
+      addressExcludes.addAll(Set.of(rawAddressExcludes.split("\\s*[,\\|]\\s*")));
     }
 
     forwardingAddress = Objects.requireNonNull(usedProperties.remove(FORWARDING_ADDRESS), String.format("%s property is required", FORWARDING_ADDRESS));
@@ -127,10 +140,17 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
     if (!usedProperties.isEmpty()) {
       throw new IllegalArgumentException(String.format("Unknown properties: [%s]", String.join(",", usedProperties.keySet())));
     }
+
+    initialized = true;
+    log.debug("Initialized plugin: {}", toString());
   }
 
   @Override
   public void registered(ActiveMQServer server) {
+    if (!initialized) {
+      throw new IllegalStateException(String.format("%s not initialized", getClass().getSimpleName()));
+    }
+
     this.server = server;
     wildcardConfiguration = server.getConfiguration().getWildcardConfiguration();
 
@@ -143,6 +163,8 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
     for (String addressExclude : addressExcludes) {
       excludeRegexes.add(Pattern.compile(Helper.wildcardToRegex(addressExclude, wildcardConfiguration)));
     }
+
+    log.debug("Plugin registered: {}", toString());
   }
 
   @Override
@@ -155,10 +177,16 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
 
     excludeRegexes.clear();
     excludeRegexes = null;
+
+    log.debug("Plugin unregistered: {}", toString());
   }
 
   @Override
   public void afterAddAddress(AddressInfo addressInfo, boolean reload) throws ActiveMQException {
+    if (!initialized) {
+      throw new IllegalStateException(String.format("%s not initialized", getClass().getSimpleName()));
+    }
+
     String createdAddress = addressInfo.getName().toString();
 
     for (Pattern excludeRegex : excludeRegexes) {
@@ -184,11 +212,27 @@ public class WildcardDivertPlugin implements ActiveMQServerPlugin {
         }
         try {
           server.deployDivert(divertConfiguration);
+          log.debug("Divert deployed: {}", divertConfiguration);
         } catch (Exception e) {
           throw new ActiveMQException("Unable to deploy divert for address: " + createdAddress, e);
         }
       }
       break;
     }
+  }
+
+  @Override
+  public String toString() {
+    ToStringBuilder tsb = new ToStringBuilder(this);
+    tsb.append("divertPrefix", divertPrefix);
+    tsb.append("addressIncludes", addressIncludes);
+    tsb.append("addressExcludes", addressExcludes);
+    tsb.append("forwardingAddress", forwardingAddress);
+    tsb.append("routingType", routingType);
+    tsb.append("filterString", filterString);
+    tsb.append("exclusive", exclusive);
+    tsb.append("transformerClass", transformerClass);
+    tsb.append("transformerProperties", transformerProperties);
+    return tsb.toString();
   }
 }

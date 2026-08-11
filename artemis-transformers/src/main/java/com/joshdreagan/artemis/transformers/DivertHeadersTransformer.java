@@ -2,13 +2,25 @@ package com.joshdreagan.artemis.transformers;
 
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 public class DivertHeadersTransformer implements Transformer {
+
+  private static final Logger log = LoggerFactory.getLogger(DivertHeadersTransformer.class);
 
   public static final String PRE_DIVERT_ADDRESS = "PreDivertAddress";
   public static final String PRE_DIVERT_QUEUE = "PreDivertQueue";
   public static final String PRE_DIVERT_ROUTING_TYPE = "PreDivertRoutingType";
   public static final String PRE_DIVERT_MESSAGE_ID = "PreDivertMessageId";
+
+  @Override
+  public void init(Map<String, String> properties) {
+    log.debug("Initialized transformer: {}", toString());
+  }
 
   @Override
   public Message transform(Message message) {
@@ -39,5 +51,11 @@ public class DivertHeadersTransformer implements Transformer {
     }
     result.reencode();
     return result;
+  }
+
+  @Override
+  public String toString() {
+    ToStringBuilder tsb = new ToStringBuilder(this);
+    return tsb.toString();
   }
 }

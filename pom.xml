@@ -24,66 +24,40 @@
     <compiler-plugin.version>3.15.0</compiler-plugin.version>
     <maven.compiler.release>21</maven.compiler.release>
 
-    <!--
-    <artemis.version>2.53.0.redhat-00003</artemis.version>
-    -->
     <artemis.version>2.55.0</artemis.version>
+    <commons-lang3.version>3.20.0</commons-lang3.version>
+    <jackson.version>2.22.1</jackson.version>
     <qpid.version>1.16.0</qpid.version>
-    <!--
-    <slf4j.version>2.0.17.redhat-00003</slf4j.version>
-    -->
     <slf4j.version>2.0.17</slf4j.version>
     <awaitility.version>4.2.0</awaitility.version>
     <junit.version>6.1.2</junit.version>
   </properties>
 
-  <repositories>
-    <repository>
-      <id>red-hat-enterprise-maven-repository</id>
-      <url>https://maven.repository.redhat.com/ga/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>red-hat-enterprise-maven-repository</id>
-      <url>https://maven.repository.redhat.com/ga/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </pluginRepository>
-  </pluginRepositories>
-
   <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>org.apache.artemis</groupId>
-        <artifactId>artemis-server</artifactId>
+        <artifactId>artemis-bom</artifactId>
         <version>${artemis.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>org.apache.artemis</groupId>
-        <artifactId>artemis-amqp-protocol</artifactId>
-        <version>${artemis.version}</version>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>${commons-lang3.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.artemis</groupId>
-        <artifactId>artemis-jms-client</artifactId>
-        <version>${artemis.version}</version>
+        <groupId>com.fasterxml.jackson</groupId>
+        <artifactId>jackson-bom</artifactId>
+        <version>${jackson.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.qpid</groupId>
         <artifactId>qpid-jms-client</artifactId>
         <version>${qpid.version}</version>
-        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>

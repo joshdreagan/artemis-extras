@@ -2,10 +2,15 @@ package com.joshdreagan.artemis.transformers;
 
 import org.apache.activemq.artemis.api.core.Message;
 import org.apache.activemq.artemis.core.server.transformer.Transformer;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class ChainedTransformer implements Transformer {
+
+  private static final Logger log = LoggerFactory.getLogger(ChainedTransformer.class);
 
   public static final String NAMES_PROPERTY = "names";
   public static final String CLASS_PROPERTY = "transformer-class-name";
@@ -14,13 +19,17 @@ public class ChainedTransformer implements Transformer {
   private static final String CLASS_NAME_FORMAT = DELEGATE_PREFIX_FORMAT + "." + ChainedTransformer.CLASS_PROPERTY;
   private static final String PROPERTY_FORMAT = DELEGATE_PREFIX_FORMAT + ".properties.%s";
 
-  List<Transformer> transformers = new ArrayList<>();
+  private List<Transformer> transformers = new ArrayList<>();
+
+  private boolean initialized = false;
 
   @Override
   public void init(Map<String, String> properties) {
     if (properties == null || properties.isEmpty()) {
       throw new IllegalArgumentException("Transformer properties cannot be null or empty");
     }
+
+    log.debug("Initializing transformer [{}] with properties: {}", this.getClass().getSimpleName(), properties);
 
     String rawNames = properties.get(ChainedTransformer.NAMES_PROPERTY);
     if (rawNames == null || rawNames.isEmpty()) {
@@ -34,10 +43,17 @@ public class ChainedTransformer implements Transformer {
       }
       transformers.add(instantiateTransformer(name, delegate));
     }
+
+    initialized = true;
+    log.debug("Initialized transformer: {}", toString());
   }
 
   @Override
   public Message transform(Message message) {
+    if (!initialized) {
+      throw new IllegalStateException(String.format("%s not initialized", getClass().getSimpleName()));
+    }
+
     Message result = message;
     for (Transformer transformer : transformers) {
       if (result == null) {
@@ -124,5 +140,12 @@ public class ChainedTransformer implements Transformer {
     }
 
     return new DelegateTransformerConfig(parsedTransformerClassName, parsedTransformerProperties);
+  }
+
+  @Override
+  public String toString() {
+    ToStringBuilder tsb = new ToStringBuilder(this);
+    tsb.append("transformers", transformers);
+    return tsb.toString();
   }
 }

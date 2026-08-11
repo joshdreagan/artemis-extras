@@ -25,7 +25,7 @@ abstract class AbstractWildcardDivertPluginTest {
   @BeforeEach
   protected void setUp() throws Exception {
     server = new EmbeddedActiveMQ();
-    server.setConfigResourcePath("artemis/broker.xml");
+    server.setConfigResourcePath("artemis/broker-diverts.xml");
     server.start();
   }
 
