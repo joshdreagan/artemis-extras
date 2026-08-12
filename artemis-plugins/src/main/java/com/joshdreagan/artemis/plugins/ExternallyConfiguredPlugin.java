@@ -2,7 +2,9 @@ package com.joshdreagan.artemis.plugins;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactoryBuilder;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import org.apache.activemq.artemis.core.server.ActiveMQServer;
 import org.apache.activemq.artemis.core.server.plugin.ActiveMQServerBasePlugin;
@@ -87,31 +89,87 @@ public class ExternallyConfiguredPlugin implements ActiveMQServerPlugin {
     log.debug("Initialized plugin: {}", this);
   }
 
-  @SuppressWarnings("unchecked")
   protected static Map<String, Object> parseConfigurationFile(URL location) throws IOException {
     String type = Helper.getConfigType(location);
-    ObjectMapper mapper = switch (type.toLowerCase()) {
-      case "json" -> new ObjectMapper();
-      case "yaml" -> new ObjectMapper(
-        YAMLFactory
-          .builder()
-          .disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER)
-          .build()
-      );
-      default -> null;
+    return switch (type.toLowerCase()) {
+      case "json" -> parseJsonConfigurationFile(location);
+      case "yaml" -> parseYamlConfigurationFile(location);
+      case "xml" -> parseXmlConfigurationFile(location);
+      default -> throw new IllegalArgumentException(String.format("Invalid configuration file type: %s", type));
     };
-    if (mapper == null) {
-      throw new IllegalArgumentException(String.format("Invalid configuration file type: %s", type));
-    }
-    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+  }
 
-    Map<String, Object> rootPluginConfig;
+  @SuppressWarnings("unchecked")
+  protected static Map<String, Object> parseJsonConfigurationFile(URL location) {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     try (InputStream is = location.openStream()) {
-      rootPluginConfig = mapper.readValue(is, Map.class);
+      return mapper.readValue(is, Map.class);
     } catch (IOException e) {
       throw new RuntimeException("Unable to parse configuration file: " + location, e);
     }
-    return rootPluginConfig;
+  }
+
+  @SuppressWarnings("unchecked")
+  protected static Map<String, Object> parseYamlConfigurationFile(URL location) {
+    YAMLFactoryBuilder builder = YAMLFactory.builder();
+    builder.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
+    ObjectMapper mapper = new ObjectMapper(builder.build());
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    try (InputStream is = location.openStream()) {
+      return mapper.readValue(is, Map.class);
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to parse configuration file: " + location, e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  protected static Map<String, Object> parseXmlConfigurationFile(URL location) {
+    ObjectMapper mapper = new XmlMapper();
+    mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    Map<String, Object> rawConfig;
+    try (InputStream is = location.openStream()) {
+      rawConfig = mapper.readValue(is, Map.class);
+      if (rawConfig == null) {
+        return null;
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Unable to parse configuration file: " + location, e);
+    }
+
+    Map<String, Object> formattedConfig = new HashMap<>();
+    List<Map<String, Object>> formattedPlugins = (List<Map<String, Object>>) formattedConfig.computeIfAbsent("plugins", k -> new ArrayList<>());
+
+    List<Map<String, Object>> rawPlugins = (List<Map<String, Object>>) rawConfig.get("plugin");
+    if (rawPlugins == null) {
+      return formattedConfig;
+    }
+
+    rawPlugins.forEach(rawPlugin -> {
+      Map<String, Object> formattedPlugin = new HashMap<>();
+
+      String rawClassName = (String) rawPlugin.get("class-name");
+      formattedPlugin.put("class-name", rawClassName);
+
+      Map<String, Object> rawProperties = (Map<String, Object>) rawPlugin.get("properties");
+      if (rawProperties != null) {
+        Map<String, Object> formattedProperties = new HashMap<>();
+
+        List<Map<String, Object>> rawPropertyItems = (List<Map<String, Object>>) rawProperties.get("property");
+        if (rawPropertyItems != null) {
+          rawPropertyItems.forEach(rawPropertyItem -> {
+            String rawPropertyName = (String) rawPropertyItem.getOrDefault("key", rawPropertyItem.get("name"));
+            String rawPropertyValue = (String) rawPropertyItem.getOrDefault("value", rawPropertyItem.get(""));
+            formattedProperties.put(rawPropertyName, rawPropertyValue);
+          });
+        }
+
+        formattedPlugin.put("properties", formattedProperties);
+      }
+
+      formattedPlugins.add(formattedPlugin);
+    });
+    return formattedConfig;
   }
 
   private ActiveMQServerBasePlugin initializePlugin(String pluginClassName, Map<String, String> pluginProperties) {

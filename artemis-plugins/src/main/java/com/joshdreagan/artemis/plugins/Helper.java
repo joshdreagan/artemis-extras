@@ -42,7 +42,8 @@ public final class Helper {
 
     return switch (typeString.toLowerCase()) {
       case "xml",
-           "application/xml" -> "xml";
+           "application/xml",
+           "text/xml" -> "xml";
       case "json",
            "application/json" -> "json";
       case "yaml",
