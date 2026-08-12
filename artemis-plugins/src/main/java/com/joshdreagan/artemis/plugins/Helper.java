@@ -10,7 +10,14 @@ import java.util.*;
 
 public final class Helper {
 
+  private static String literal(String string) {
+    return "\\Q" + string + "\\E";
+  }
+
   public static String wildcardToRegex(String wildcard, WildcardConfiguration wildcardConfiguration) {
+    Objects.requireNonNull(wildcard, "Parameter 'wildcard' cannot be null");
+    Objects.requireNonNull(wildcardConfiguration, "Parameter 'wildcardConfiguration' cannot be null");
+
     String delimiter = wildcardConfiguration.getDelimiterString();
     String singleWord = wildcardConfiguration.getSingleWordString();
     String anyWords = wildcardConfiguration.getAnyWordsString();
@@ -31,10 +38,6 @@ public final class Helper {
       parts[i] = part;
     }
     return String.join(literal(delimiter), parts);
-  }
-
-  private static String literal(String string) {
-    return "\\Q" + string + "\\E";
   }
 
   public static String toSimpleTypeString(String typeString) {
@@ -64,6 +67,8 @@ public final class Helper {
   }
 
   public static String getConfigType(URL url) throws IOException {
+    Objects.requireNonNull(url, "Parameter 'url' cannot be null");
+
     String type = getQueryParameter(url, "type", String.class);
     if (type != null) {
       return toSimpleTypeString(type);
@@ -116,6 +121,10 @@ public final class Helper {
 
   @SuppressWarnings("unchecked")
   public static <T> T getQueryParameter(URL url, String key, Class<T> valueType) {
+    Objects.requireNonNull(url, "Parameter 'url' cannot be null");
+    Objects.requireNonNull(key, "Parameter 'key' cannot be null");
+    Objects.requireNonNull(valueType, "Parameter 'valueType' cannot be null");
+
     key = key.replaceAll("\\[]&", "");
     Map<String, List<String>> queryParams = getQueryParameters(url);
     List<String> values = queryParams.get(key);
