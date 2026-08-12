@@ -13,6 +13,7 @@
   <modules>
     <module>artemis-plugins</module>
     <module>artemis-transformers</module>
+    <module>dist</module>
   </modules>
 
   <properties>
@@ -23,6 +24,7 @@
     <surefire-plugin.version>3.5.4</surefire-plugin.version>
     <compiler-plugin.version>3.15.0</compiler-plugin.version>
     <maven.compiler.release>21</maven.compiler.release>
+    <assembly-plugin.version>3.8.0</assembly-plugin.version>
 
     <artemis.version>2.55.0</artemis.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
@@ -92,6 +94,11 @@
         <plugin>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${surefire-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>${assembly-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>

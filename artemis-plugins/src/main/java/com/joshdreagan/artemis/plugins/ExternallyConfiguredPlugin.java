@@ -26,7 +26,6 @@ public class ExternallyConfiguredPlugin implements ActiveMQServerPlugin {
 
   public static final String LOCATION = "location";
 
-  private ActiveMQServer server;
   private final List<ActiveMQServerBasePlugin> plugins = new ArrayList<>();
   private boolean initialized = false;
 
@@ -189,8 +188,6 @@ public class ExternallyConfiguredPlugin implements ActiveMQServerPlugin {
       throw new IllegalStateException(String.format("%s not initialized", getClass().getSimpleName()));
     }
 
-    this.server = server;
-
     for (ActiveMQServerBasePlugin plugin : plugins) {
       server.registerBrokerPlugin(plugin);
     }
@@ -201,16 +198,11 @@ public class ExternallyConfiguredPlugin implements ActiveMQServerPlugin {
     for (ActiveMQServerBasePlugin plugin : plugins) {
       server.unRegisterBrokerPlugin(plugin);
     }
-
-    this.server = null;
   }
 
   @Override
   public String toString() {
     ToStringBuilder tsb = new ToStringBuilder(this);
-    tsb.append("server", server);
-    tsb.append("plugins", plugins);
-    tsb.append("initialized", initialized);
     tsb.append("location", location);
     return tsb.toString();
   }
