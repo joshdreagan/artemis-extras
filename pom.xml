@@ -13,7 +13,7 @@
   <modules>
     <module>artemis-plugins</module>
     <module>artemis-transformers</module>
-    <module>dist</module>
+    <module>distribution</module>
   </modules>
 
   <properties>

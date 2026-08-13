@@ -77,7 +77,7 @@ public class ExternallyConfiguredPlugin implements ActiveMQServerPlugin {
     for (Map<String, Object> pluginConfig : pluginConfigs) {
       String pluginClass = (String) pluginConfig.get("class-name");
       if (pluginClass == null) {
-        throw new IllegalArgumentException("Plugin configuration does not contain a 'class' property");
+        throw new IllegalArgumentException("Plugin configuration does not contain a 'class-name' property");
       }
       @SuppressWarnings("unchecked")
       Map<String, String> pluginProperties = (Map<String, String>) pluginConfig.get("properties");
